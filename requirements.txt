@@ -1,0 +1,30 @@
+Timer Command Line Interface
+
+Agenda:
+I often use a pomodoro timer @ https://www.tomatotimers.com/ 
+for my productivity so I want a CLI to quickly jump into the webpage
+without having me to open chrome ...
+
+Command:
+timer duration
+
+eg. timer 100
+
+-> Opens https://www.tomatotimers.com/, sets the timer to 100 minutes
+   & starts timer
+
+Steps:
+1. Install selenium (/)
+2. Create driver (/)
+3. Grab the html that I need (/)
+   - Custom Timer (/)
+   - Text-field of POMODORO (/)
+   - Save btn (/)
+   - Play btn (/)
+4. Click the necessary buttons (/)
+   ||- Custom Timer (/)
+   ||- Change the text-field in POMODORO to desired duration (/)
+   ||- Click Save (/)
+   ||- Click Play (/)
+5. Get user input from the terminal (/)
+6. Make the app into an exec (/)

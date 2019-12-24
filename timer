@@ -1,0 +1,117 @@
+#!/usr/bin/env node
+const { Builder, By, until } = require("selenium-webdriver");
+const yargs = require("yargs");
+
+// Configs
+const BROWSER = "chrome";
+const TIMER_URL = "https://www.tomatotimers.com/";
+
+// Queries
+const CUSTOM_TIMER_BTN = "button[data-target='#custom-timer']";
+const DURATION = "#pomodoro_value";
+const SHORT_BREAK = "#short_break_value";
+const LONG_BREAK = "#long_break_value";
+const SAVE_BTN = "#SaveSet";
+const PLAY_BTN = "#startButton";
+const POMODORO_BTN = "#pomodoro_timer_button";
+const SHORT_BREAK_BTN = "#short_break_timer_button";
+const LONG_BREAK_BTN = "#long_break_timer_button";
+
+const timeQueries = {
+  duration: DURATION,
+  shortBreak: SHORT_BREAK,
+  longBreak: LONG_BREAK
+};
+
+// Inputs
+console.log(yargs.argv);
+
+function getTimes() {
+  let args = yargs.argv._;
+  let duration = args[0] ? args[0] : 25;
+  let shortBreak = args[1] ? args[1] : 5;
+  let longBreak = args[2] ? args[2] : 15;
+
+  return {
+    duration: duration,
+    shortBreak: shortBreak,
+    longBreak: longBreak
+  };
+}
+
+// Get HTML
+async function getHTML(driver, cssSelector) {
+  let html = driver.findElement(By.css(cssSelector));
+  return html;
+}
+
+// Init -> sets up the duration and breaks
+async function init(driver, times) {
+  for (let time in times) {
+    // Fill in the text-fields
+    const textField = await getHTML(driver, timeQueries[time]);
+    await driver.wait(until.elementIsVisible(textField));
+    await textField.clear();
+    await textField.sendKeys(times[time]);
+  }
+}
+
+// Play function
+async function play(driver, type) {
+  // Select either pomodoro, short or long break
+  const typeBtn = await getHTML(driver, type);
+  await typeBtn.click();
+
+  // Click play btn
+  const playBtn = await getHTML(driver, PLAY_BTN);
+  await driver.wait(until.elementIsVisible(playBtn));
+  await playBtn.click();
+}
+
+// Main function
+async function main() {
+  try {
+    // Process the arguments
+    const times = getTimes();
+    const { duration, shortBreak, longBreak } = times;
+    const numLoops = yargs.argv._[3] ? yargs.argv._[3] : 1;
+
+    // Create new web driver instance
+    const driver = await new Builder().forBrowser(BROWSER).build();
+
+    // Goes to the webpage
+    await driver.get(TIMER_URL);
+
+    // Get the custom timer btn and click on it
+    const timerBtn = await getHTML(driver, CUSTOM_TIMER_BTN);
+    await timerBtn.click();
+
+    // Init
+    await init(driver, times);
+
+    // Click save btn
+    const saveBtn = await getHTML(driver, SAVE_BTN);
+    await saveBtn.click();
+
+    // Loop
+    for (let i = 0; i < numLoops; i++) {
+      for (let j = 0; j < 4; j++) {
+        await play(driver, POMODORO_BTN);
+        await driver.sleep(duration * 60000 + 3000);
+        await play(driver, SHORT_BREAK_BTN);
+        await driver.sleep(shortBreak);
+      }
+
+      await play(driver, LONG_BREAK_BTN);
+      await driver.sleep(longBreak);
+    }
+
+    console.log("You're all done!!!");
+  } catch (err) {
+    console.error(err);
+  } finally {
+    console.log("Program Complete");
+  }
+}
+
+main();
